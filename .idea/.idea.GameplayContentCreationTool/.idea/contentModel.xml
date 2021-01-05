@@ -15,6 +15,12 @@
             <e p="PlayerCamera.cs" t="Include" />
           </e>
           <e p="ProjectileController.cs" t="Include" />
+          <e p="Weapons" t="Include">
+            <e p="Effect.cs" t="Include" />
+            <e p="EffectController.cs" t="Include" />
+            <e p="Weapon.cs" t="Include" />
+            <e p="WeaponList.cs" t="Include" />
+          </e>
         </e>
       </e>
       <e p="GameplayContentCreationTool.sln" t="IncludeFlat" />

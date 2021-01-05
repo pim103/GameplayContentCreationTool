@@ -2,14 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using Games.Global.Weapons;
+using Player;
 using UnityEngine;
+using Weapons;
 
 public class GameController : MonoBehaviour
 {
-    [SerializeField] private GameObject player;
+    [SerializeField] private CameraController player;
 
     public void Start()
     {
+        WeaponList.InitWeaponList();
+
+        player.InitPlayer();
         SpawnEnemy();
     }
 
@@ -19,7 +24,7 @@ public class GameController : MonoBehaviour
         target.transform.position = Vector3.zero + Vector3.up * 2;
         
         Entity entity = target.GetComponent<Entity>();
-        entity.Player = player;
+        entity.Player = player.gameObject;
 
         target.SetActive(true);
     }

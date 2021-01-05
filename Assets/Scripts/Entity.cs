@@ -5,15 +5,21 @@ using UnityEngine.UI;
 public class Entity : MonoBehaviour
 {
     [SerializeField] private Slider hpBar;
-    private int hp;
+    private float hp;
+    private float maxHp;
+
+    private float speed;
+    private float originalSpeed;
 
     public GameObject Player { get; set; }
     
     private void OnEnable()
     {
-        hp = 50;    
+        maxHp = hp = 50;
         hpBar.value = hp;
-        hpBar.maxValue = hp;
+        hpBar.maxValue = maxHp;
+
+        originalSpeed = speed = 5;
     }
 
     public void Update()
@@ -22,7 +28,7 @@ public class Entity : MonoBehaviour
         hpBar.transform.Rotate(Vector3.up * 180);
     }
 
-    public void TakeDamage(int damageTaken)
+    public void TakeDamage(float damageTaken)
     {
         hp -= damageTaken;
         hpBar.value = hp;
@@ -31,6 +37,23 @@ public class Entity : MonoBehaviour
         {
             DestroyEntity();
         }
+    }
+
+    public void HealDamages(float damageHeal)
+    {
+        hp += damageHeal;
+        hp = hp > maxHp ? maxHp : hp;
+    }
+
+    public void ReduceSpeed(float valueSlow)
+    {
+        speed -= valueSlow;
+        speed = speed < 0 ? 0 : speed;
+    }
+
+    public void ResetSpeed()
+    {
+        speed = originalSpeed;
     }
 
     private void DestroyEntity()

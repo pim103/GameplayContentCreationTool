@@ -2,6 +2,7 @@
 using System.Collections;
 using Games.Global.Weapons;
 using UnityEngine;
+using Weapons;
 
 namespace Player
 {
@@ -20,12 +21,16 @@ namespace Player
         private bool canShoot;
         
         private float projectileCooldown = 1f;
+
+        private Weapon weapon;
         
-        private void Start()
+        public void InitPlayer()
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
             canShoot = true;
+
+            weapon = WeaponList.GetWeaponById(1);
         }
 
         // Update is called once per frame
@@ -93,27 +98,18 @@ namespace Player
                 player.transform.position += player.transform.right * speed * Time.deltaTime;
             }
 
-            if (wantToShoot && canShoot)
+            if (wantToShoot && canShoot && weapon != null)
             {
                 StartCoroutine(ProjectileCooldown());
                 
-                GameObject proj = ObjectPooler.SharedInstance.GetPooledObject(0);
-                proj.transform.position = player.transform.position;
-
-                Vector3 eulerAngle = proj.transform.localEulerAngles;
-                eulerAngle.x = transform.localEulerAngles.x;
-                eulerAngle.y = player.transform.localEulerAngles.y;
-                eulerAngle.z = 0.0f;
-                proj.transform.localEulerAngles = eulerAngle;
-                
-                proj.SetActive(true);
+                weapon.Shoot(player, transform.localEulerAngles.x);
             }
         }
 
         private IEnumerator ProjectileCooldown()
         {
             canShoot = false;
-            yield return new WaitForSeconds(projectileCooldown);
+            yield return new WaitForSeconds(weapon.rateOfFire);
             canShoot = true;
         }
     }

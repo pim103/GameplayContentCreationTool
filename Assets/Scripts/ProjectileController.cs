@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Weapons;
 
 public class ProjectileController : MonoBehaviour
 {
-    private float projectileSpeed = 10f;
-    private float projectileDuration = 5f;
-    private int projectileDamage = 10;
+    public float projectileSpeed = 10f;
+    public float projectileDuration = 5f;
+    public int projectileDamage = 10;
+    public Effect effect;
 
     private Coroutine currentDelay;
 
@@ -37,6 +38,11 @@ public class ProjectileController : MonoBehaviour
 
             Entity entity = other.GetComponent<Entity>();
             entity.TakeDamage(projectileDamage);
+
+            if (effect != null)
+            {
+                EffectController.ApplyEffect(entity, effect);
+            }
         }
 
     }
