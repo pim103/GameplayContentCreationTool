@@ -8,7 +8,7 @@ namespace Weapons
         public string weaponName;
         public int weaponId;
         public int damages;
-        public int rateOfFire;
+        public float rateOfFire;
 
         public int projSpeed;
         public int projLifeTime;

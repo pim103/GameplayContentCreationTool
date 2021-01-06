@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using FullSerializer;
+using UnityEngine;
 
 namespace Weapons
 {
@@ -10,46 +13,70 @@ namespace Weapons
         public static void InitWeaponList()
         {
             weapons = new List<Weapon>();
-            
-            weapons.Add(new Weapon
+
+            LoadWeaponFromDirectory();
+
+//            weapons.Add(new Weapon
+//            {
+//                damages = 10,
+//                projSpeed = 10,
+//                weaponId = 1,
+//                weaponName = "helloWorld",
+//                rateOfFire = 1,
+//                modelId = 0,
+//                projLifeTime = 5,
+//                effect = new Effect
+//                {
+//                    amount = 5,
+//                    interval = 1,
+//                    effectId = 1,
+//                    effectName = "Brulure",
+//                    lifeTime = 3,
+//                    SpecialEffect = SpecialEffect.Dot
+//                }
+//            });
+//            
+//            weapons.Add(new Weapon
+//            {
+//                damages = 0,
+//                projSpeed = 10,
+//                weaponId = 2,
+//                weaponName = "helloWorldHeal",
+//                rateOfFire = 1,
+//                modelId = 0,
+//                projLifeTime = 5,
+//                effect = new Effect
+//                {
+//                    amount = 5,
+//                    interval = 1,
+//                    effectId = 2,
+//                    effectName = "Heal",
+//                    lifeTime = 3,
+//                    SpecialEffect = SpecialEffect.Heal
+//                }
+//            });
+        }
+
+        private static void LoadWeaponFromDirectory()
+        {
+            fsSerializer serializer = new fsSerializer();
+
+            foreach (string path in Directory.GetFiles(Application.dataPath + "/Data"))
             {
-                damages = 10,
-                projSpeed = 10,
-                weaponId = 1,
-                weaponName = "helloWorld",
-                rateOfFire = 1,
-                modelId = 0,
-                projLifeTime = 5,
-                effect = new Effect
+                if (!path.EndsWith(".json"))
                 {
-                    amount = 5,
-                    interval = 1,
-                    effectId = 1,
-                    effectName = "Brulure",
-                    lifeTime = 3,
-                    SpecialEffect = SpecialEffect.Dot
+                    continue;
                 }
-            });
+    
+                fsData data = fsJsonParser.Parse(File.ReadAllText(path));
+
+                Weapon weapon = null;
+                serializer.TryDeserialize(data, ref weapon);
+
+                weapons.Add(weapon);
+            }
             
-            weapons.Add(new Weapon
-            {
-                damages = 0,
-                projSpeed = 10,
-                weaponId = 2,
-                weaponName = "helloWorldHeal",
-                rateOfFire = 1,
-                modelId = 0,
-                projLifeTime = 5,
-                effect = new Effect
-                {
-                    amount = 5,
-                    interval = 1,
-                    effectId = 2,
-                    effectName = "Heal",
-                    lifeTime = 3,
-                    SpecialEffect = SpecialEffect.Heal
-                }
-            });
+            Debug.Log("Found " + weapons.Count + " weapons");
         }
 
         public static Weapon GetWeaponByName(string name)
