@@ -6,5 +6,5 @@ header('Content-Type: application/json');
 
 $weapon = WeaponDAO::listWeapons();
 
-echo json_encode($weapon);
+echo '{weapons:' . json_encode($weapon) . '}';
 http_response_code(200);
