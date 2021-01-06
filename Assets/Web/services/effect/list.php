@@ -6,5 +6,5 @@ header('Content-Type: application/json');
 
 $effect = EffectDAO::listEffects();
 
-echo json_encode($effect);
+echo '{effects:' . json_encode($effect) . '}';
 http_response_code(200);
