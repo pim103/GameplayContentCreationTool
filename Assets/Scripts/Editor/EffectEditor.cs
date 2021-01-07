@@ -18,7 +18,7 @@ namespace Editor
             }
             
             EditorGUI.BeginChangeCheck();
-            int effectSelected = newEffect != null ? editorParent.effectsChoiceList.IndexOf(newEffect.effectName) : 0;
+            int effectSelected = newEffect.effectId != 0 ? editorParent.effectsChoiceList.IndexOf(newEffect.effectName) : 0;
             effectSelected = EditorGUILayout.Popup("Effect", effectSelected, editorParent.effectsChoiceList.ToArray());
 
             if (EditorGUI.EndChangeCheck())
@@ -49,7 +49,12 @@ namespace Editor
                 newEffect = null;
                 editorParent.editorType = EditorType.Weapon;
             }
-            
+
+            if (effectSelected != 0 && GUILayout.Button("Delete effect"))
+            {
+                editorParent.DeleteEffect(newEffect);
+            }
+
             if (GUILayout.Button("Edit weapon"))
             {
                 editorParent.editorType = EditorType.Weapon;

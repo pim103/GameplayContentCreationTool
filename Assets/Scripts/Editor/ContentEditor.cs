@@ -146,6 +146,11 @@ namespace Editor
             {
                 AddWeaponToList(newWeapon, weaponSelected != 0);
             }
+
+            if (weaponSelected != 0 && GUILayout.Button("Delete weapon"))
+            {
+                DeleteWeapon(newWeapon);
+            }
         }
 
         private void LoadData()
@@ -227,6 +232,16 @@ namespace Editor
             ResetPanel();
 
             return true;
+        }
+
+        private void DeleteWeapon(Weapon weaponToDelete)
+        {
+            this.StartCoroutine(DatabaseManager.DeleteWeapon(weaponToDelete, LoadData));
+        }
+        
+        public void DeleteEffect(Effect effectToDelete)
+        {
+            this.StartCoroutine(DatabaseManager.DeleteEffect(effectToDelete, LoadData));
         }
 
         private bool CheckValidName()

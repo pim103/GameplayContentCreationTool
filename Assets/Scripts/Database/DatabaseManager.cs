@@ -103,9 +103,19 @@ namespace Database
             form.AddField("intervalTime", effectUpdated.interval.ToString());
             form.AddField("lifeTime", effectUpdated.lifeTime.ToString());
             form.AddField("amount", effectUpdated.amount.ToString());
-            form.AddField("specialEffect", effectUpdated.SpecialEffect.ToString());
+            form.AddField("specialEffect", (int) effectUpdated.SpecialEffect);
 
             UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/effect/update.php", form);
+
+            yield return SendAddRequest(www, successEndCallback);
+        }
+        
+        public static IEnumerator DeleteEffect(Effect effectToDelete, Action successEndCallback = null)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("id", effectToDelete.effectId);
+
+            UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/effect/delete.php", form);
 
             yield return SendAddRequest(www, successEndCallback);
         }
@@ -115,7 +125,7 @@ namespace Database
             WWWForm form = new WWWForm();
             form.AddField("weaponName", newWeapon.weaponName);
             form.AddField("damages", newWeapon.damages);
-            form.AddField("rateOfFire", newWeapon.rateOfFire.ToString());
+            form.AddField("rateOfFire", newWeapon.rateOfFire.ToString().Replace(",", "."));
             form.AddField("projSpeed", newWeapon.projSpeed);
             form.AddField("projLifeTime", newWeapon.projLifeTime);
             form.AddField("modelId", newWeapon.modelId);
@@ -132,13 +142,23 @@ namespace Database
             form.AddField("id", weaponUpdated.weaponId);
             form.AddField("weaponName", weaponUpdated.weaponName);
             form.AddField("damages", weaponUpdated.damages);
-            form.AddField("rateOfFire", weaponUpdated.rateOfFire.ToString());
+            form.AddField("rateOfFire", weaponUpdated.rateOfFire.ToString().Replace(",", "."));
             form.AddField("projSpeed", weaponUpdated.projSpeed);
             form.AddField("projLifeTime", weaponUpdated.projLifeTime);
             form.AddField("modelId", weaponUpdated.modelId);
             form.AddField("effectId", weaponUpdated.effect != null ? weaponUpdated.effect.effectId.ToString() : "");
 
             UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/weapon/update.php", form);
+
+            yield return SendAddRequest(www, successEndCallback);
+        }
+
+        public static IEnumerator DeleteWeapon(Weapon weaponToDelete, Action successEndCallback = null)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("id", weaponToDelete.weaponId);
+
+            UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/weapon/delete.php", form);
 
             yield return SendAddRequest(www, successEndCallback);
         }
@@ -151,6 +171,7 @@ namespace Database
             if (www.responseCode == 201)
             {
                 Debug.Log("Request was send");
+                Debug.Log(www.downloadHandler.text);
 
                 successEndCallback?.Invoke();
             }

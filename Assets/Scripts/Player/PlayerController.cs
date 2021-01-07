@@ -6,7 +6,7 @@ using Weapons;
 
 namespace Player
 {
-    public class CameraController : MonoBehaviour
+    public class PlayerController : MonoBehaviour
     {
         [SerializeField] private GameObject player;
 
@@ -22,15 +22,27 @@ namespace Player
         
         private float projectileCooldown = 1f;
 
+        private bool wantToChangeWeapon;
+        private int weaponSelected = 0;
         private Weapon weapon;
-        
+
         public void InitPlayer()
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
             canShoot = true;
 
-            weapon = WeaponList.GetWeaponById(1);
+            ChangeWeapon();
+        }
+
+        private void ChangeWeapon()
+        {
+            weaponSelected = WeaponList.GetNbWeapons() > weaponSelected ? weaponSelected : 0;
+            
+            weapon = WeaponList.GetNextWeaponInList(weaponSelected);
+            Debug.Log("Current Weapon : " + weapon.weaponName);
+
+            weaponSelected++;
         }
 
         // Update is called once per frame
@@ -39,7 +51,7 @@ namespace Player
             if (Input.GetKeyDown(KeyCode.Z))
             {
                 wantToGoForward = true;
-            } 
+            }
             if (Input.GetKeyDown(KeyCode.Q))
             {
                 wantToGoLeft = true;
@@ -51,6 +63,11 @@ namespace Player
             if (Input.GetKeyDown(KeyCode.D))
             {
                 wantToGoRight = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                wantToChangeWeapon = true;
             }
 
             wantToShoot = Input.GetMouseButton(0);
@@ -96,6 +113,12 @@ namespace Player
             if (wantToGoRight)
             {
                 player.transform.position += player.transform.right * speed * Time.deltaTime;
+            }
+
+            if (wantToChangeWeapon)
+            {
+                ChangeWeapon();
+                wantToChangeWeapon = false;
             }
 
             if (wantToShoot && canShoot && weapon != null)

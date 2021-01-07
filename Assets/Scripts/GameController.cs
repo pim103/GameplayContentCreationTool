@@ -8,11 +8,16 @@ using Weapons;
 
 public class GameController : MonoBehaviour
 {
-    [SerializeField] private CameraController player;
+    [SerializeField] private PlayerController player;
 
     public void Start()
     {
-        WeaponList.InitWeaponList();
+        StartCoroutine(WaitForWeaponsLoad());
+    }
+
+    private IEnumerator WaitForWeaponsLoad()
+    {
+        yield return WeaponList.InitWeaponList();
 
         player.InitPlayer();
         SpawnEnemy();

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Database;
 using FullSerializer;
 using UnityEngine;
 
@@ -10,51 +12,16 @@ namespace Weapons
     {
         private static List<Weapon> weapons;
         
-        public static void InitWeaponList()
+        public static IEnumerator InitWeaponList()
         {
             weapons = new List<Weapon>();
 
-            LoadWeaponFromDirectory();
+            yield return DatabaseManager.ListWeapon(AddWeaponsToList);
+        }
 
-//            weapons.Add(new Weapon
-//            {
-//                damages = 10,
-//                projSpeed = 10,
-//                weaponId = 1,
-//                weaponName = "helloWorld",
-//                rateOfFire = 1,
-//                modelId = 0,
-//                projLifeTime = 5,
-//                effect = new Effect
-//                {
-//                    amount = 5,
-//                    interval = 1,
-//                    effectId = 1,
-//                    effectName = "Brulure",
-//                    lifeTime = 3,
-//                    SpecialEffect = SpecialEffect.Dot
-//                }
-//            });
-//            
-//            weapons.Add(new Weapon
-//            {
-//                damages = 0,
-//                projSpeed = 10,
-//                weaponId = 2,
-//                weaponName = "helloWorldHeal",
-//                rateOfFire = 1,
-//                modelId = 0,
-//                projLifeTime = 5,
-//                effect = new Effect
-//                {
-//                    amount = 5,
-//                    interval = 1,
-//                    effectId = 2,
-//                    effectName = "Heal",
-//                    lifeTime = 3,
-//                    SpecialEffect = SpecialEffect.Heal
-//                }
-//            });
+        private static void AddWeaponsToList()
+        {
+            weapons.AddRange(DatabaseManager.weaponsLoad);
         }
 
         private static void LoadWeaponFromDirectory()
@@ -101,6 +68,21 @@ namespace Weapons
             }
 
             return weaponFound;
+        }
+
+        public static int GetNbWeapons()
+        {
+            return weapons.Count;
+        }
+        
+        public static Weapon GetNextWeaponInList(int index)
+        {
+            if (weapons.Count <= index)
+            {
+                return weapons[0];
+            }
+
+            return weapons[index];
         }
     }
 }
