@@ -15,7 +15,7 @@ class DatabaseManager
     private function __construct()
     {
         $options = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8');
-        $this->pdo = new PDO('mysql:host=heolia.eu;dbname=fyc', 'fyc', 'a3Vdi9zqqsc6fElu', $options);
+        $this->pdo = new PDO('mysql:host=localhost;dbname=fyc', 'root', '', $options);
     }
 
     public function getPDO() { return $this->pdo; }

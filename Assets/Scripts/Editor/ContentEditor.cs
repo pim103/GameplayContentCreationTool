@@ -1,11 +1,11 @@
 ﻿#if UNITY_EDITOR_64 || UNITY_EDITOR
 
+using Unity.EditorCoroutines.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using Database;
 using FullSerializer;
-using TMPro;
 using UnityEditor;
 using UnityEngine;
 using Weapons;
@@ -52,6 +52,11 @@ namespace Editor
             {
                 effectEditor.DisplayEffectPanel(this);
                 return;
+            }
+
+            if (GUILayout.Button("Load Data"))
+            {
+                LoadData();
             }
             
             if (GUILayout.Button("Create Effect"))
@@ -121,31 +126,40 @@ namespace Editor
 
             if (GUILayout.Button("Save weapon") && CheckValidName())
             {
-                string path = Application.dataPath + "/Data/" + newWeapon.weaponName + ".json";
+//                string path = Application.dataPath + "/Data/" + newWeapon.weaponName + ".json";
+//
+//                fsSerializer serializer = new fsSerializer();
+//                serializer.TrySerialize(newWeapon.GetType(), newWeapon, out fsData data);
+//                File.WriteAllText(path, fsJsonPrinter.CompressedJson(data));
 
-                fsSerializer serializer = new fsSerializer();
-                serializer.TrySerialize(newWeapon.GetType(), newWeapon, out fsData data);
-                File.WriteAllText(path, fsJsonPrinter.CompressedJson(data));
+                this.StartCoroutine(DatabaseManager.SaveWeapon(newWeapon));
                 
                 Debug.Log("Want to save weapon : " + newWeapon.weaponName);
                 ResetPanel();
             }
-
-            if (GUILayout.Button("Compute Ids"))
-            {
-                ComputeIds();
-            }
         }
 
+        private void LoadData()
+        {
+            void Lambda() => InitEffectChoiceList();
+            this.StartCoroutine(DatabaseManager.ListEffect(Lambda));
+            this.StartCoroutine(DatabaseManager.ListWeapon());
+        }
+        
         private void InitEffectChoiceList()
         {
-            effectsChoiceList = new List<string>();
-            effectsChoiceList.Add("Nothing");
-
             if (effectsCreated == null)
             {
-                return;
+                effectsCreated = new List<Effect>();
             }
+            
+            if (DatabaseManager.effectsLoad != null)
+            {
+                effectsCreated.AddRange(DatabaseManager.effectsLoad);
+            }
+
+            effectsChoiceList = new List<string>();
+            effectsChoiceList.Add("Nothing");
     
             foreach (Effect effect in effectsCreated)
             {
@@ -155,18 +169,13 @@ namespace Editor
 
         public bool AddEffectToList(Effect newEffect)
         {
-            if (effectsCreated == null)
-            {
-                effectsCreated = new List<Effect>();
-            }
-
-            if (effectsCreated.Exists(effect => effect.effectName == newEffect.effectName))
+            if (effectsCreated != null && effectsCreated.Exists(effect => effect.effectName == newEffect.effectName))
             {
                 return false;
             }
 
-            effectsCreated.Add(newEffect);
-            InitEffectChoiceList();
+            void Lambda() => InitEffectChoiceList();
+            this.StartCoroutine(DatabaseManager.SaveEffect(newEffect, Lambda));
 
             return true;
         }

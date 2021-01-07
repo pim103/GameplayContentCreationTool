@@ -29,7 +29,7 @@ namespace Editor
                 {
                     return;
                 }
-//                editorParent.newWeapon.effect = newEffect;
+
                 newEffect = null;
                 editorParent.editorType = EditorType.Weapon;
             }
