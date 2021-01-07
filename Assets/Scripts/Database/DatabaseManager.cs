@@ -47,7 +47,7 @@ namespace Database
             Debug.Log("Response code : " + www.responseCode);
         }
 
-        public static IEnumerator ListWeapon()
+        public static IEnumerator ListWeapon(Action successEndCallback = null)
         {
             var www = UnityWebRequest.Get("http://fyc/services/weapon/list.php");
 
@@ -67,13 +67,15 @@ namespace Database
 
                     if (weaponListJson != null)
                     {
-                        weaponsLoad = weaponListJson.weapons;
+                        weaponsLoad = weaponListJson.GetWeapons();
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.Log("error " + e.Message);
                 }
+
+                successEndCallback?.Invoke();
             }
             
             Debug.Log("Response code : " + www.responseCode);
@@ -93,6 +95,21 @@ namespace Database
             yield return SendAddRequest(www, successEndCallback);
         }
         
+        public static IEnumerator UpdateEffect(Effect effectUpdated, Action successEndCallback = null)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("id", effectUpdated.effectId);
+            form.AddField("effectName", effectUpdated.effectName);
+            form.AddField("intervalTime", effectUpdated.interval.ToString());
+            form.AddField("lifeTime", effectUpdated.lifeTime.ToString());
+            form.AddField("amount", effectUpdated.amount.ToString());
+            form.AddField("specialEffect", effectUpdated.SpecialEffect.ToString());
+
+            UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/effect/update.php", form);
+
+            yield return SendAddRequest(www, successEndCallback);
+        }
+        
         public static IEnumerator SaveWeapon(Weapon newWeapon, Action successEndCallback = null)
         {
             WWWForm form = new WWWForm();
@@ -105,6 +122,23 @@ namespace Database
             form.AddField("effectId", newWeapon.effect != null ? newWeapon.effect.effectId.ToString() : "");
 
             UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/weapon/add.php", form);
+
+            yield return SendAddRequest(www, successEndCallback);
+        }
+
+        public static IEnumerator UpdateWeapon(Weapon weaponUpdated, Action successEndCallback = null)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("id", weaponUpdated.weaponId);
+            form.AddField("weaponName", weaponUpdated.weaponName);
+            form.AddField("damages", weaponUpdated.damages);
+            form.AddField("rateOfFire", weaponUpdated.rateOfFire.ToString());
+            form.AddField("projSpeed", weaponUpdated.projSpeed);
+            form.AddField("projLifeTime", weaponUpdated.projLifeTime);
+            form.AddField("modelId", weaponUpdated.modelId);
+            form.AddField("effectId", weaponUpdated.effect != null ? weaponUpdated.effect.effectId.ToString() : "");
+
+            UnityWebRequest www = UnityWebRequest.Post("http://fyc/services/weapon/update.php", form);
 
             yield return SendAddRequest(www, successEndCallback);
         }

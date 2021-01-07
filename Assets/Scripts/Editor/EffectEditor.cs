@@ -16,6 +16,22 @@ namespace Editor
                 Debug.Log("Create new effect");
                 newEffect = new Effect();
             }
+            
+            EditorGUI.BeginChangeCheck();
+            int effectSelected = newEffect != null ? editorParent.effectsChoiceList.IndexOf(newEffect.effectName) : 0;
+            effectSelected = EditorGUILayout.Popup("Effect", effectSelected, editorParent.effectsChoiceList.ToArray());
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (effectSelected > 0)
+                {
+                    newEffect = editorParent.effectsCreated[effectSelected - 1];
+                }
+                else
+                {
+                    newEffect = new Effect();
+                }
+            }
 
             newEffect.effectName = EditorGUILayout.TextField("Name", newEffect.effectName);
             newEffect.amount = EditorGUILayout.FloatField("Amount", newEffect.amount);
@@ -25,7 +41,7 @@ namespace Editor
 
             if (GUILayout.Button("Save Effect"))
             {
-                if (!editorParent.AddEffectToList(newEffect))
+                if (!editorParent.AddEffectToList(newEffect, effectSelected != 0))
                 {
                     return;
                 }

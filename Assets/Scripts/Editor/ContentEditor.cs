@@ -27,7 +27,9 @@ namespace Editor
         private string pathWeaponImported;
 
         public List<Effect> effectsCreated;
+        public List<Weapon> weaponsCreated;
         public List<string> effectsChoiceList;
+        public List<string> weaponsChoiceList;
 
         public EditorType editorType = EditorType.Weapon;
 
@@ -58,7 +60,33 @@ namespace Editor
             {
                 LoadData();
             }
-            
+
+            if (DatabaseManager.weaponsLoad == null || DatabaseManager.effectsLoad == null)
+            {
+                return;
+            }
+
+            if (newWeapon == null)
+            {
+                newWeapon = new Weapon();
+            }
+
+            EditorGUI.BeginChangeCheck();
+            int weaponSelected = newWeapon.weaponId != 0 ? weaponsChoiceList.IndexOf(newWeapon.weaponName) : 0;
+            weaponSelected = EditorGUILayout.Popup("Choose or create a weapon", weaponSelected, weaponsChoiceList.ToArray());
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (weaponSelected == 0)
+                {
+                    newWeapon = new Weapon();
+                }
+                else
+                {
+                    newWeapon = weaponsCreated[weaponSelected - 1];
+                }
+            }
+
             if (GUILayout.Button("Create Effect"))
             {
                 editorType = EditorType.Effect;
@@ -88,11 +116,6 @@ namespace Editor
             newWeapon.projSpeed = EditorGUILayout.IntField("Projectile speed", newWeapon.projSpeed);
             newWeapon.projLifeTime = EditorGUILayout.IntField("Projectile life time", newWeapon.projLifeTime);
 
-            if (effectsChoiceList == null)
-            {
-                InitEffectChoiceList();
-            }
-            
             EditorGUI.BeginChangeCheck();
             int effectSelected = newWeapon.effect != null ? effectsChoiceList.IndexOf(newWeapon.effect.effectName) : 0;
             effectSelected = EditorGUILayout.Popup("Effect", effectSelected, effectsChoiceList.ToArray());
@@ -118,32 +141,19 @@ namespace Editor
             {
                 ResetPanel();
             }
-            
-            if (GUILayout.Button("Import weapon"))
-            {
-                ImportWeapon();
-            }
 
             if (GUILayout.Button("Save weapon") && CheckValidName())
             {
-//                string path = Application.dataPath + "/Data/" + newWeapon.weaponName + ".json";
-//
-//                fsSerializer serializer = new fsSerializer();
-//                serializer.TrySerialize(newWeapon.GetType(), newWeapon, out fsData data);
-//                File.WriteAllText(path, fsJsonPrinter.CompressedJson(data));
-
-                this.StartCoroutine(DatabaseManager.SaveWeapon(newWeapon));
-                
-                Debug.Log("Want to save weapon : " + newWeapon.weaponName);
-                ResetPanel();
+                AddWeaponToList(newWeapon, weaponSelected != 0);
             }
         }
 
         private void LoadData()
         {
-            void Lambda() => InitEffectChoiceList();
-            this.StartCoroutine(DatabaseManager.ListEffect(Lambda));
-            this.StartCoroutine(DatabaseManager.ListWeapon());
+            void LoadEffectLambda() => InitEffectChoiceList();
+            void LoadWeaponLambda() => InitWeaponChoiceList();
+            this.StartCoroutine(DatabaseManager.ListEffect(LoadEffectLambda));
+            this.StartCoroutine(DatabaseManager.ListWeapon(LoadWeaponLambda));
         }
         
         private void InitEffectChoiceList()
@@ -155,61 +165,68 @@ namespace Editor
             
             if (DatabaseManager.effectsLoad != null)
             {
+                effectsCreated.Clear();
                 effectsCreated.AddRange(DatabaseManager.effectsLoad);
             }
 
-            effectsChoiceList = new List<string>();
-            effectsChoiceList.Add("Nothing");
-    
+            effectsChoiceList = new List<string> {"Nothing"};
+
             foreach (Effect effect in effectsCreated)
             {
                 effectsChoiceList.Add(effect.effectName);
             }
         }
 
-        public bool AddEffectToList(Effect newEffect)
+        private void InitWeaponChoiceList()
         {
-            if (effectsCreated != null && effectsCreated.Exists(effect => effect.effectName == newEffect.effectName))
+            if (weaponsCreated == null)
+            {
+                weaponsCreated = new List<Weapon>();
+            }
+
+            if (DatabaseManager.weaponsLoad != null)
+            {
+                weaponsCreated.Clear();
+                weaponsCreated.AddRange(DatabaseManager.weaponsLoad);
+            }
+
+            weaponsChoiceList = new List<string> {"New"};
+
+            foreach (Weapon weapon in weaponsCreated)
+            {
+                weaponsChoiceList.Add(weapon.weaponName);
+            }
+        }
+
+        public bool AddEffectToList(Effect newEffect, bool updateExistingEffect = false)
+        {
+            if (String.IsNullOrEmpty(newEffect.effectName))
             {
                 return false;
             }
 
-            void Lambda() => InitEffectChoiceList();
-            this.StartCoroutine(DatabaseManager.SaveEffect(newEffect, Lambda));
+            this.StartCoroutine(updateExistingEffect
+                ? DatabaseManager.UpdateEffect(newEffect, LoadData)
+                : DatabaseManager.SaveEffect(newEffect, LoadData));
 
             return true;
         }
 
-        private void ComputeIds()
+        public bool AddWeaponToList(Weapon weaponToSave, bool updateExistingWeapon = false)
         {
-            fsSerializer serializer = new fsSerializer();
-            int id = 1;
-            int effectId = 1;
-
-            foreach (string path in Directory.GetFiles(Application.dataPath + "/Data"))
+            if (String.IsNullOrEmpty(weaponToSave.weaponName))
             {
-                if (!path.EndsWith(".json"))
-                {
-                    continue;
-                }
-    
-                fsData data = fsJsonParser.Parse(File.ReadAllText(path));
-
-                Weapon weapon = null;
-                serializer.TryDeserialize(data, ref weapon);
-
-                weapon.weaponId = id;
-                ++id;
-
-                if (weapon.effect != null)
-                {
-                    weapon.effect.effectId = effectId;
-                    ++effectId;
-                }
-
-                serializer.TrySerialize(weapon.GetType(), weapon, out fsData dataToSave);
-                File.WriteAllText(path, fsJsonPrinter.CompressedJson(dataToSave));
+                return false;
             }
+
+            this.StartCoroutine(updateExistingWeapon
+                ? DatabaseManager.UpdateWeapon(weaponToSave, LoadData)
+                : DatabaseManager.SaveWeapon(weaponToSave, LoadData));
+
+            LoadData();
+            ResetPanel();
+
+            return true;
         }
 
         private bool CheckValidName()
@@ -240,28 +257,28 @@ namespace Editor
             return true;
         }
 
-        private void ImportWeapon()
-        {
-            string path = EditorUtility.OpenFilePanel("Choose a weapon", Application.dataPath + "/Data", "json");
-
-            if (String.IsNullOrEmpty(path))
-            {
-                return;
-            }
-            
-            fsSerializer serializer = new fsSerializer();
-            fsData data = fsJsonParser.Parse(File.ReadAllText(path));
-
-            serializer.TryDeserialize(data, ref newWeapon);
-            weaponIsImported = true;
-            eraseIfPossible = true;
-            pathWeaponImported = path;
-
-            if (newWeapon.effect != null)
-            {
-                AddEffectToList(newWeapon.effect);
-            }
-        }
+//        private void ImportWeapon()
+//        {
+//            string path = EditorUtility.OpenFilePanel("Choose a weapon", Application.dataPath + "/Data", "json");
+//
+//            if (String.IsNullOrEmpty(path))
+//            {
+//                return;
+//            }
+//            
+//            fsSerializer serializer = new fsSerializer();
+//            fsData data = fsJsonParser.Parse(File.ReadAllText(path));
+//
+//            serializer.TryDeserialize(data, ref newWeapon);
+//            weaponIsImported = true;
+//            eraseIfPossible = true;
+//            pathWeaponImported = path;
+//
+//            if (newWeapon.effect != null)
+//            {
+//                AddEffectToList(newWeapon.effect);
+//            }
+//        }
 
         private void ResetPanel()
         {
