@@ -53,7 +53,7 @@ namespace Editor
                 effectEditor.DisplayEffectPanel(this);
                 return;
             }
-            
+
             if (GUILayout.Button("Create Effect"))
             {
                 editorType = EditorType.Effect;
@@ -68,7 +68,7 @@ namespace Editor
                     effectEditor.newEffect = newWeapon.effect;
                 }
             }
-            
+
             if (newWeapon == null)
             {
                 Debug.Log("Create new weapon");
@@ -87,7 +87,7 @@ namespace Editor
             {
                 InitEffectChoiceList();
             }
-            
+
             EditorGUI.BeginChangeCheck();
             int effectSelected = newWeapon.effect != null ? effectsChoiceList.IndexOf(newWeapon.effect.effectName) : 0;
             effectSelected = EditorGUILayout.Popup("Effect", effectSelected, effectsChoiceList.ToArray());
@@ -113,7 +113,7 @@ namespace Editor
             {
                 ResetPanel();
             }
-            
+
             if (GUILayout.Button("Import weapon"))
             {
                 ImportWeapon();
@@ -126,7 +126,7 @@ namespace Editor
                 fsSerializer serializer = new fsSerializer();
                 serializer.TrySerialize(newWeapon.GetType(), newWeapon, out fsData data);
                 File.WriteAllText(path, fsJsonPrinter.CompressedJson(data));
-                
+
                 Debug.Log("Want to save weapon : " + newWeapon.weaponName);
                 ResetPanel();
             }
@@ -134,6 +134,48 @@ namespace Editor
             if (GUILayout.Button("Compute Ids"))
             {
                 ComputeIds();
+            }
+
+            if (GUILayout.Button("Send file to server"))
+            {
+                SendFileToServer();
+            }
+        }
+
+        private void SendFileToServer()
+        {
+            foreach (string path in Directory.GetFiles(Application.dataPath + "/Data"))
+            {
+                if (!path.EndsWith(".json"))
+                {
+                    continue;
+                }
+
+                UploadFtpFile(path);
+            }
+        }
+
+        private void UploadFtpFile(string filename)
+        {
+            FtpWebRequest request;
+            
+            request = WebRequest.Create(new Uri($@"ftp://{"heolia.eu"}/{"data/weapon_fyc"}/{Path.GetFileName(filename)}")) as FtpWebRequest;
+            request.Method = WebRequestMethods.Ftp.UploadFile;
+            request.UseBinary = true;
+            request.UsePassive = true;
+            request.KeepAlive = true;
+            request.Credentials = new NetworkCredential("towers", "towers");    
+
+            using (FileStream fs = File.OpenRead(filename))
+            {
+                byte[] buffer = new byte[fs.Length];
+                fs.Read(buffer, 0, buffer.Length);
+                fs.Close();
+
+                Stream stream = request.GetRequestStream();
+                stream.Write(buffer, 0, buffer.Length);
+                stream.Flush();
+                stream.Close();
             }
         }
 

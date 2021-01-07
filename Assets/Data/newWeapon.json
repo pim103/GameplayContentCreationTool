@@ -1,0 +1,1 @@
+{"weaponName":"newWeapon","weaponId":0,"damages":1,"rateOfFire":2.0,"projSpeed":4,"projLifeTime":5,"modelId":3,"effect":{"effectName":"effe","effectId":0,"interval":2.0,"lifeTime":3.0,"amount":1.0,"SpecialEffect":"Dot"}}
